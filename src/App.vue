@@ -6,6 +6,13 @@
   </v-app>
 </template>
 
-<script setup>
+<script>
 import InitialIndex from "./components/InitialIndex.vue";
+
+export default {
+  components: {
+    InitialIndex,
+  },
+  mounted() {},
+};
 </script>

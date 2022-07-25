@@ -18,7 +18,7 @@
       elevation="0"
     ></v-app-bar>
     <v-main>
-      <v-container v-if="bouquet.size > 0">
+      <v-container v-if="emptyBouquet">
         <BouquetCard :bouquet="bouquet" />
         Итого к оплате: <b>{{ order.bouquet_price }}</b> руб.
       </v-container>
@@ -29,21 +29,25 @@
 <script setup>
 import FlowerCard from "./FlowerCard.vue";
 import BouquetCard from "./BouquetCard.vue";
-import { getFlowers } from "../api";
-import { ref, reactive, watch } from "vue";
+import FlowerManager from "@/models/FlowerManager";
+
+import { ref, reactive, watch, computed, onMounted } from "vue";
 
 let flowers = ref([]);
 let bouquet = ref(new Set());
 let order = reactive({});
+let emptyBouquet = computed(() => {
+  return bouquet.value.size > 0 ? true : false;
+});
 
-watch(bouquet.value, () => {
+const calculateBouquetPrice = () => {
   order.bouquet_price = 0;
   for (let item of bouquet.value.values()) {
     order.bouquet_price += item.price * item.count;
   }
-});
+};
 
-let addFlower = (flower) => {
+const addFlower = (flower) => {
   if (bouquet.value.has(flower)) flower.count++;
   else {
     flower.count = 1;
@@ -51,7 +55,11 @@ let addFlower = (flower) => {
   }
 };
 
-getFlowers().then((data) => {
-  flowers.value = data;
-});
+const loading = async () => {
+  const flowerManager = new FlowerManager();
+  flowers.value = await flowerManager.getAllFlowers();
+};
+
+watch(bouquet.value, calculateBouquetPrice);
+onMounted(loading);
 </script>
